@@ -1,0 +1,63 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../board_store.dart';
+import '../edit_mode.dart';
+import '../speaker.dart';
+import '../widgets/picto_tile.dart';
+import 'editor_screen.dart';
+
+/// Grilla de pictogramas de un tablero. Tocar uno lo dice en voz alta; en
+/// modo edición lo abre para editarlo y aparece la tarjeta "+".
+class BoardView extends StatelessWidget {
+  const BoardView({super.key, required this.boardId});
+
+  final String boardId;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = context.watch<BoardStore>();
+    final editing = context.watch<EditMode>().editing;
+    final items = store.board(boardId).items;
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: kTileGrid,
+      itemCount: items.length + (editing ? 1 : 0),
+      itemBuilder: (context, i) {
+        if (i == items.length) {
+          return AddTile(
+            label: 'Agregar',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => EditorScreen.pictogram(boardId: boardId),
+              ),
+            ),
+          );
+        }
+        final picto = items[i];
+        final audio = store.mediaFile(picto.audioPath);
+        return PictoTile(
+          key: ValueKey(picto.id),
+          label: picto.label,
+          emoji: picto.emoji,
+          imageFile: store.mediaFile(picto.imagePath),
+          hasVoice: editing && picto.audioPath != null,
+          editing: editing,
+          onTap: editing
+              ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EditorScreen.pictogram(
+                        boardId: boardId,
+                        picto: picto,
+                      ),
+                    ),
+                  )
+              : () => Speaker.instance.say(picto.label, audioFile: audio),
+        );
+      },
+    );
+  }
+}
