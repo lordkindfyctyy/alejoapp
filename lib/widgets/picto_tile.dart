@@ -82,10 +82,22 @@ class _PictoTileState extends State<PictoTile> {
                                   cacheWidth: 400,
                                 ),
                               )
-                            : FittedBox(
-                                child: Text(
-                                  widget.emoji.isEmpty ? '❔' : widget.emoji,
-                                  style: const TextStyle(fontSize: 64),
+                            : LayoutBuilder(
+                                // Tamaño fijo según el lugar disponible, con
+                                // tope: los emojis gigantes (escalados con
+                                // FittedBox) no se dibujan en algunos
+                                // teléfonos y quedan en blanco.
+                                builder: (context, box) => Center(
+                                  child: Text(
+                                    widget.emoji.isEmpty ? '❔' : widget.emoji,
+                                    textScaler: TextScaler.noScaling,
+                                    style: TextStyle(
+                                      fontSize: (box.biggest.shortestSide * 0.7)
+                                          .clamp(16, 56)
+                                          .toDouble(),
+                                      height: 1.1,
+                                    ),
+                                  ),
                                 ),
                               ),
                       ),
@@ -190,9 +202,10 @@ class AddTile extends StatelessWidget {
   }
 }
 
-/// Grilla que acomoda tarjetas de ~170 px según el ancho del teléfono.
+/// Grilla que acomoda tarjetas de hasta 140 px: 3 por fila en un teléfono,
+/// más en una tablet.
 const kTileGrid = SliverGridDelegateWithMaxCrossAxisExtent(
-  maxCrossAxisExtent: 180,
+  maxCrossAxisExtent: 140,
   mainAxisSpacing: 12,
   crossAxisSpacing: 12,
   childAspectRatio: 0.82,
