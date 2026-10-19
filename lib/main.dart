@@ -7,6 +7,8 @@ import 'default_boards.dart';
 import 'edit_mode.dart';
 import 'screens/board_view.dart';
 import 'screens/categories_view.dart';
+import 'sentence.dart';
+import 'widgets/sentence_bar.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,9 +19,12 @@ Future<void> main() async {
 }
 
 class AlejoApp extends StatelessWidget {
-  const AlejoApp({super.key, required this.store});
+  const AlejoApp({super.key, required this.store, this.sentence});
 
   final BoardStore store;
+
+  /// Los tests pasan una que no usa la voz del teléfono.
+  final Sentence? sentence;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +32,7 @@ class AlejoApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: store),
         ChangeNotifierProvider(create: (_) => EditMode()),
+        ChangeNotifierProvider(create: (_) => sentence ?? Sentence()),
       ],
       child: MaterialApp(
         title: 'AlejoApp',
@@ -72,11 +78,19 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [EditModeButton(mode: context.read<EditMode>())],
       ),
-      body: IndexedStack(
-        index: _tab,
-        children: const [
-          BoardView(boardId: kHomeBoardId),
-          CategoriesView(),
+      body: Column(
+        children: [
+          // La frase sigue armada al pasar de Inicio a una categoría y volver.
+          const SentenceBar(),
+          Expanded(
+            child: IndexedStack(
+              index: _tab,
+              children: const [
+                BoardView(boardId: kHomeBoardId),
+                CategoriesView(),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(

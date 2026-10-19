@@ -6,6 +6,7 @@ import '../edit_mode.dart';
 import '../models.dart';
 import '../speaker.dart';
 import '../widgets/picto_tile.dart';
+import '../widgets/sentence_bar.dart';
 import 'board_view.dart';
 import 'editor_screen.dart';
 
@@ -87,7 +88,12 @@ class CategoryScreen extends StatelessWidget {
         ),
         actions: [EditModeButton(mode: context.read<EditMode>())],
       ),
-      body: BoardView(boardId: categoryId),
+      body: Column(
+        children: [
+          const SentenceBar(),
+          Expanded(child: BoardView(boardId: categoryId)),
+        ],
+      ),
     );
   }
 }

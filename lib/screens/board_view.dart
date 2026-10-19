@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../board_store.dart';
 import '../edit_mode.dart';
+import '../sentence.dart';
 import '../speaker.dart';
 import '../widgets/picto_tile.dart';
 import 'editor_screen.dart';
@@ -55,7 +56,14 @@ class BoardView extends StatelessWidget {
                       ),
                     ),
                   )
-              : () => Speaker.instance.say(picto.label, audioFile: audio),
+              : () {
+                  Speaker.instance.say(picto.label, audioFile: audio);
+                  context.read<Sentence>().add(
+                        picto,
+                        imageFile: store.mediaFile(picto.imagePath),
+                        audioFile: audio,
+                      );
+                },
         );
       },
     );

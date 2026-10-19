@@ -33,17 +33,29 @@ class Speaker {
     }
   }
 
-  /// [audioFile] es la grabación propia (ruta completa) o null.
-  Future<void> say(String text, {String? audioFile}) async {
+  /// [audioFile] es la grabación propia (ruta completa) o null. Con [wait]
+  /// no vuelve hasta terminar de hablar (para decir una frase palabra por
+  /// palabra).
+  Future<void> say(String text, {String? audioFile, bool wait = false}) async {
     await stop();
     if (audioFile != null && await File(audioFile).exists()) {
+      final done = wait ? _player.onPlayerComplete.first : null;
       await _player.play(DeviceFileSource(audioFile));
+      if (done != null) {
+        // Por las dudas, que una grabación trabada no frene la frase.
+        await done.timeout(const Duration(seconds: 20), onTimeout: () {});
+      }
       return;
     }
     await _initTts();
-    // En minúscula: algunas voces deletrean las palabras en mayúscula
-    // ("NO" → "ene o").
-    await _tts.speak(text.toLowerCase());
+    try {
+      await _tts.awaitSpeakCompletion(wait);
+      // En minúscula: algunas voces deletrean las palabras en mayúscula
+      // ("NO" → "ene o").
+      await _tts.speak(text.toLowerCase());
+    } catch (e) {
+      debugPrint('TTS: $e');
+    }
   }
 
   Future<void> stop() async {
