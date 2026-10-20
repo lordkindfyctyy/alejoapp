@@ -7,6 +7,7 @@ import 'default_boards.dart';
 import 'edit_mode.dart';
 import 'screens/board_view.dart';
 import 'screens/categories_view.dart';
+import 'screens/talking_view.dart';
 import 'sentence.dart';
 import 'widgets/sentence_bar.dart';
 
@@ -73,7 +74,9 @@ class _HomeScreenState extends State<HomeScreen> {
         toolbarHeight: 64,
         backgroundColor: editing ? const Color(0xFFE07A00) : null,
         title: Text(
-          editing ? 'Modo edición' : (_tab == 0 ? 'INICIO' : 'CATEGORÍAS'),
+          editing
+              ? 'Modo edición'
+              : const ['INICIO', 'CATEGORÍAS', 'YO HABLO'][_tab],
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
         ),
         actions: [EditModeButton(mode: context.read<EditMode>())],
@@ -82,12 +85,14 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // La frase sigue armada al pasar de Inicio a una categoría y volver.
           const SentenceBar(),
+          if (_tab != 2) const EditHint(),
           Expanded(
             child: IndexedStack(
               index: _tab,
               children: const [
                 BoardView(boardId: kHomeBoardId),
                 CategoriesView(),
+                TalkingView(),
               ],
             ),
           ),
@@ -107,6 +112,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.grid_view_outlined, size: 32),
             selectedIcon: Icon(Icons.grid_view, size: 32),
             label: 'Categorías',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.record_voice_over_outlined, size: 32),
+            selectedIcon: Icon(Icons.record_voice_over, size: 32),
+            label: 'Yo hablo',
           ),
         ],
       ),

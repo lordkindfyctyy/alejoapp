@@ -5,11 +5,13 @@ import '../board_store.dart';
 import '../edit_mode.dart';
 import '../sentence.dart';
 import '../speaker.dart';
+import '../widgets/drag_to_reorder.dart';
 import '../widgets/picto_tile.dart';
 import 'editor_screen.dart';
 
 /// Grilla de pictogramas de un tablero. Tocar uno lo dice en voz alta; en
-/// modo edición lo abre para editarlo y aparece la tarjeta "+".
+/// modo edición lo abre para editarlo, se puede arrastrar para cambiarlo de
+/// lugar y aparece la tarjeta "+".
 class BoardView extends StatelessWidget {
   const BoardView({super.key, required this.boardId});
 
@@ -39,8 +41,7 @@ class BoardView extends StatelessWidget {
         }
         final picto = items[i];
         final audio = store.mediaFile(picto.audioPath);
-        return PictoTile(
-          key: ValueKey(picto.id),
+        final tile = PictoTile(
           label: picto.label,
           emoji: picto.emoji,
           imageFile: store.mediaFile(picto.imagePath),
@@ -48,22 +49,27 @@ class BoardView extends StatelessWidget {
           editing: editing,
           onTap: editing
               ? () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => EditorScreen.pictogram(
-                        boardId: boardId,
-                        picto: picto,
-                      ),
-                    ),
-                  )
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        EditorScreen.pictogram(boardId: boardId, picto: picto),
+                  ),
+                )
               : () {
                   Speaker.instance.say(picto.label, audioFile: audio);
                   context.read<Sentence>().add(
-                        picto,
-                        imageFile: store.mediaFile(picto.imagePath),
-                        audioFile: audio,
-                      );
+                    picto,
+                    imageFile: store.mediaFile(picto.imagePath),
+                    audioFile: audio,
+                  );
                 },
+        );
+        if (!editing) return KeyedSubtree(key: ValueKey(picto.id), child: tile);
+        return DragToReorder(
+          key: ValueKey(picto.id),
+          index: i,
+          onMove: (from, to) => store.movePictogram(boardId, from, to),
+          child: tile,
         );
       },
     );

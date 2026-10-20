@@ -5,6 +5,7 @@ import '../board_store.dart';
 import '../edit_mode.dart';
 import '../models.dart';
 import '../speaker.dart';
+import '../widgets/drag_to_reorder.dart';
 import '../widgets/picto_tile.dart';
 import '../widgets/sentence_bar.dart';
 import 'board_view.dart';
@@ -36,8 +37,7 @@ class CategoriesView extends StatelessWidget {
           );
         }
         final category = categories[i];
-        return PictoTile(
-          key: ValueKey(category.id),
+        final tile = PictoTile(
           label: category.name,
           emoji: category.emoji,
           imageFile: store.mediaFile(category.imagePath),
@@ -45,12 +45,21 @@ class CategoriesView extends StatelessWidget {
           color: Theme.of(context).colorScheme.secondaryContainer,
           onTap: editing
               ? () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => EditorScreen.category(category: category),
-                    ),
-                  )
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditorScreen.category(category: category),
+                  ),
+                )
               : () => _open(context, category),
+        );
+        if (!editing) {
+          return KeyedSubtree(key: ValueKey(category.id), child: tile);
+        }
+        return DragToReorder(
+          key: ValueKey(category.id),
+          index: i,
+          onMove: store.moveCategory,
+          child: tile,
         );
       },
     );
@@ -60,7 +69,9 @@ class CategoriesView extends StatelessWidget {
     Speaker.instance.say(category.name);
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => CategoryScreen(categoryId: category.id)),
+      MaterialPageRoute(
+        builder: (_) => CategoryScreen(categoryId: category.id),
+      ),
     );
   }
 }
@@ -91,6 +102,7 @@ class CategoryScreen extends StatelessWidget {
       body: Column(
         children: [
           const SentenceBar(),
+          const EditHint(),
           Expanded(child: BoardView(boardId: categoryId)),
         ],
       ),

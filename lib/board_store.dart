@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import 'default_boards.dart';
 import 'models.dart';
+import 'talking.dart';
 
 /// Guarda los tableros en el teléfono (sin internet ni cuentas): un
 /// `tableros.json` y una carpeta `medios/` con las fotos y las grabaciones.
@@ -16,7 +17,11 @@ class BoardStore extends ChangeNotifier {
   final Directory root;
 
   final List<Board> _boards = [];
+  TalkingPhoto _talking = TalkingPhoto.initial();
   bool _loaded = false;
+
+  /// La foto de "Yo hablo" y sus frases.
+  TalkingPhoto get talking => _talking;
 
   bool get loaded => _loaded;
 
@@ -39,6 +44,10 @@ class BoardStore extends ChangeNotifier {
         for (final b in data['tableros'] as List) {
           _boards.add(Board.fromJson(Map<String, dynamic>.from(b as Map)));
         }
+        final talking = data['yoHablo'];
+        if (talking is Map) {
+          _talking = TalkingPhoto.fromJson(Map<String, dynamic>.from(talking));
+        }
       } catch (e) {
         debugPrint('No se pudo leer tableros.json: $e');
         _boards.clear();
@@ -60,10 +69,13 @@ class BoardStore extends ChangeNotifier {
     // Se escribe en un archivo aparte y se renombra, para no perder los
     // tableros si el teléfono se apaga a mitad de la escritura.
     final tmp = File('${_dataFile.path}.tmp');
-    await tmp.writeAsString(jsonEncode({
-      'version': 1,
-      'tableros': [for (final b in _boards) b.toJson()],
-    }));
+    await tmp.writeAsString(
+      jsonEncode({
+        'version': 1,
+        'tableros': [for (final b in _boards) b.toJson()],
+        'yoHablo': _talking.toJson(),
+      }),
+    );
     await tmp.rename(_dataFile.path);
   }
 
@@ -132,6 +144,21 @@ class BoardStore extends ChangeNotifier {
     await _commit();
   }
 
+  /// Mueve una categoría de lugar ([from] y [to] cuentan solo las
+  /// categorías, sin el tablero de inicio).
+  Future<void> moveCategory(int from, int to) async {
+    final cats = categories.toList();
+    if (from == to || from < 0 || from >= cats.length) return;
+    final category = cats.removeAt(from);
+    cats.insert(to.clamp(0, cats.length), category);
+    final start = home;
+    _boards
+      ..clear()
+      ..add(start)
+      ..addAll(cats);
+    await _commit();
+  }
+
   Future<void> deleteCategory(Board category) async {
     if (category.id == kHomeBoardId) return;
     _boards.removeWhere((b) => b.id == category.id);
@@ -142,10 +169,50 @@ class BoardStore extends ChangeNotifier {
     await _commit();
   }
 
+  // ---- Yo hablo ----
+
+  /// Cambia la foto o dónde está la boca; borra la foto anterior.
+  Future<void> saveTalkingPhoto({
+    String? imagePath,
+    double? mouthX,
+    double? mouthY,
+    double? mouthWidth,
+  }) async {
+    final old = _talking.imagePath;
+    if (imagePath != null) _talking.imagePath = imagePath;
+    if (mouthX != null) _talking.mouthX = mouthX.clamp(0, 1);
+    if (mouthY != null) _talking.mouthY = mouthY.clamp(0, 1);
+    if (mouthWidth != null) _talking.mouthWidth = mouthWidth.clamp(0.05, 0.6);
+    if (imagePath != null && old != imagePath) await deleteUnusedMedia([old]);
+    await _commit();
+  }
+
+  Future<void> savePhrase(Phrase phrase) async {
+    final list = _talking.phrases;
+    final i = list.indexWhere((p) => p.id == phrase.id);
+    final oldAudio = i >= 0 ? list[i].audioPath : null;
+    if (i >= 0) {
+      list[i] = phrase;
+    } else {
+      list.add(phrase);
+    }
+    if (oldAudio != phrase.audioPath) await deleteUnusedMedia([oldAudio]);
+    await _commit();
+  }
+
+  Future<void> deletePhrase(Phrase phrase) async {
+    _talking.phrases.removeWhere((p) => p.id == phrase.id);
+    await deleteUnusedMedia([phrase.audioPath]);
+    await _commit();
+  }
+
   /// Borra los archivos que ya no usa ningún tablero (la misma foto puede
   /// estar en más de un pictograma si se copió).
   Future<void> deleteUnusedMedia(List<String?> candidates) async {
     final inUse = <String>{
+      if (_talking.imagePath != null) _talking.imagePath!,
+      for (final p in _talking.phrases)
+        if (p.audioPath != null) p.audioPath!,
       for (final b in _boards) ...[
         if (b.imagePath != null) b.imagePath!,
         for (final p in b.items) ...[

@@ -58,6 +58,44 @@ class Speaker {
     }
   }
 
+  void Function(int start, int end)? _onWord;
+
+  /// Como [say], esperando a que termine, y avisando en [onWord] cuándo la
+  /// voz del teléfono empieza cada palabra (posición en el texto), para
+  /// mover la boca de la foto en "Yo hablo".
+  Future<void> talk(
+    String text, {
+    String? audioFile,
+    void Function(int start, int end)? onWord,
+  }) async {
+    await _initTts();
+    _onWord = onWord;
+    try {
+      _tts.setProgressHandler((_, start, end, _) => _onWord?.call(start, end));
+    } catch (e) {
+      debugPrint('TTS: $e');
+    }
+    try {
+      await say(text, audioFile: audioFile, wait: true);
+    } finally {
+      _onWord = null;
+    }
+  }
+
+  /// Cuánto dura una grabación, o null si no se puede saber.
+  Future<Duration?> audioLength(String file) async {
+    final probe = AudioPlayer();
+    try {
+      await probe.setSourceDeviceFile(file);
+      return await probe.getDuration();
+    } catch (e) {
+      debugPrint('Duración: $e');
+      return null;
+    } finally {
+      await probe.dispose();
+    }
+  }
+
   Future<void> stop() async {
     try {
       await _player.stop();

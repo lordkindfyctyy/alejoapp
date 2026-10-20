@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
-/// Elige una foto (galería o cámara) y la deja recortar y ajustar en
-/// cuadrado. Devuelve el archivo recortado o null si se canceló.
-Future<File?> pickAndCropPhoto(BuildContext context) async {
+/// Elige una foto (galería o cámara) y la deja recortar y ajustar: en
+/// cuadrado para los pictogramas, libre ([square] en false) para la foto de
+/// "Yo hablo". Devuelve el archivo recortado o null si se canceló.
+Future<File?> pickAndCropPhoto(
+  BuildContext context, {
+  bool square = true,
+}) async {
   final source = await showModalBottomSheet<ImageSource>(
     context: context,
     builder: (context) => SafeArea(
@@ -39,9 +43,9 @@ Future<File?> pickAndCropPhoto(BuildContext context) async {
   final color = Theme.of(context).colorScheme.primary;
   final cropped = await ImageCropper().cropImage(
     sourcePath: picked.path,
-    aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-    maxWidth: 800,
-    maxHeight: 800,
+    aspectRatio: square ? const CropAspectRatio(ratioX: 1, ratioY: 1) : null,
+    maxWidth: square ? 800 : 1200,
+    maxHeight: square ? 800 : 1600,
     compressQuality: 85,
     uiSettings: [
       AndroidUiSettings(
@@ -49,7 +53,7 @@ Future<File?> pickAndCropPhoto(BuildContext context) async {
         toolbarColor: color,
         toolbarWidgetColor: Colors.white,
         activeControlsWidgetColor: color,
-        lockAspectRatio: true,
+        lockAspectRatio: square,
         hideBottomControls: false,
       ),
     ],
