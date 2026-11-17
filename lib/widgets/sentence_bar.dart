@@ -70,8 +70,7 @@ class _SentenceBarState extends State<SentenceBar> {
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Tocá los dibujos
-para armar una frase',
+                          'Tocá los dibujos\npara armar una frase',
                           style: TextStyle(
                             color: scheme.outline,
                             fontSize: 16,
