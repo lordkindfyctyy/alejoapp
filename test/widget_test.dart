@@ -77,8 +77,9 @@ void main() {
   // El teléfono puede tener la letra agrandada: los paneles no se tienen que
   // desbordar en pantallas chicas.
   for (final width in [320.0, 360.0, 411.0]) {
-    testWidgets('los paneles entran en $width px con letra grande',
-        (tester) async {
+    testWidgets('los paneles entran en $width px con letra grande', (
+      tester,
+    ) async {
       tester.view.physicalSize = Size(width * 3, 760 * 3);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
@@ -88,13 +89,15 @@ void main() {
         store = BoardStore(dir);
         await store.load();
       });
-      await tester.pumpWidget(MediaQuery(
-        data: MediaQueryData(
-          size: Size(width, 760),
-          textScaler: const TextScaler.linear(1.6),
+      await tester.pumpWidget(
+        MediaQuery(
+          data: MediaQueryData(
+            size: Size(width, 760),
+            textScaler: const TextScaler.linear(1.6),
+          ),
+          child: AlejoApp(store: store),
         ),
-        child: AlejoApp(store: store),
-      ));
+      );
       await tester.pumpAndSettle();
       expect(find.text('CASA'), findsOneWidget);
 

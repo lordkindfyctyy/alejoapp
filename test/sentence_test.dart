@@ -42,26 +42,29 @@ void main() {
     expect(s.words.length, Sentence.maxWords);
   });
 
-  test('sin grabaciones la dice de una vez; con grabaciones, palabra por palabra',
-      () async {
-    final voice = FakeVoice();
-    final s = Sentence(say: voice.say);
-    s.add(picto('YO'));
-    s.add(picto('QUIERO'));
-    await s.speak();
-    expect(voice.said, ['YO QUIERO']);
+  test(
+    'sin grabaciones la dice de una vez; con grabaciones, palabra por palabra',
+    () async {
+      final voice = FakeVoice();
+      final s = Sentence(say: voice.say);
+      s.add(picto('YO'));
+      s.add(picto('QUIERO'));
+      await s.speak();
+      expect(voice.said, ['YO QUIERO']);
 
-    voice.said.clear();
-    s.add(picto('MAMÁ'), audioFile: '/voz/mama.m4a');
-    final highlighted = <int?>[];
-    s.addListener(() => highlighted.add(s.speaking));
-    await s.speak();
-    expect(voice.said, ['YO', 'QUIERO', 'MAMÁ(grabación)']);
-    expect(highlighted, [0, 1, 2, null]);
-  });
+      voice.said.clear();
+      s.add(picto('MAMÁ'), audioFile: '/voz/mama.m4a');
+      final highlighted = <int?>[];
+      s.addListener(() => highlighted.add(s.speaking));
+      await s.speak();
+      expect(voice.said, ['YO', 'QUIERO', 'MAMÁ(grabación)']);
+      expect(highlighted, [0, 1, 2, null]);
+    },
+  );
 
-  testWidgets('tocar pictogramas los suma a la tira y ▶ dice la frase',
-      (tester) async {
+  testWidgets('tocar pictogramas los suma a la tira y ▶ dice la frase', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(360 * 3, 760 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -75,13 +78,18 @@ void main() {
     addTearDown(() => dir.deleteSync(recursive: true));
     final voice = FakeVoice();
 
-    await tester.pumpWidget(MediaQuery(
-      data: const MediaQueryData(
-        size: Size(360, 760),
-        textScaler: TextScaler.linear(1.6),
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          size: Size(360, 760),
+          textScaler: TextScaler.linear(1.6),
+        ),
+        child: AlejoApp(
+          store: store,
+          sentence: Sentence(say: voice.say),
+        ),
       ),
-      child: AlejoApp(store: store, sentence: Sentence(say: voice.say)),
-    ));
+    );
     await tester.pumpAndSettle();
     expect(find.text('Tocá los dibujos para armar una frase'), findsOneWidget);
 

@@ -18,20 +18,20 @@ class Pictogram {
   String? audioPath;
 
   factory Pictogram.fromJson(Map<String, dynamic> json) => Pictogram(
-        id: json['id'] as String,
-        label: json['label'] as String? ?? '',
-        emoji: json['emoji'] as String? ?? '',
-        imagePath: json['imagePath'] as String?,
-        audioPath: json['audioPath'] as String?,
-      );
+    id: json['id'] as String,
+    label: json['label'] as String? ?? '',
+    emoji: json['emoji'] as String? ?? '',
+    imagePath: json['imagePath'] as String?,
+    audioPath: json['audioPath'] as String?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'label': label,
-        'emoji': emoji,
-        if (imagePath != null) 'imagePath': imagePath,
-        if (audioPath != null) 'audioPath': audioPath,
-      };
+    'id': id,
+    'label': label,
+    'emoji': emoji,
+    if (imagePath != null) 'imagePath': imagePath,
+    if (audioPath != null) 'audioPath': audioPath,
+  };
 }
 
 /// Un tablero de pictogramas. "Inicio" es el tablero principal; el resto son
@@ -53,21 +53,21 @@ class Board {
   final List<Pictogram> items;
 
   factory Board.fromJson(Map<String, dynamic> json) => Board(
-        id: json['id'] as String,
-        name: json['name'] as String? ?? '',
-        emoji: json['emoji'] as String? ?? '',
-        imagePath: json['imagePath'] as String?,
-        items: [
-          for (final item in json['items'] as List? ?? const [])
-            Pictogram.fromJson(Map<String, dynamic>.from(item as Map)),
-        ],
-      );
+    id: json['id'] as String,
+    name: json['name'] as String? ?? '',
+    emoji: json['emoji'] as String? ?? '',
+    imagePath: json['imagePath'] as String?,
+    items: [
+      for (final item in json['items'] as List? ?? const [])
+        Pictogram.fromJson(Map<String, dynamic>.from(item as Map)),
+    ],
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'emoji': emoji,
-        if (imagePath != null) 'imagePath': imagePath,
-        'items': [for (final item in items) item.toJson()],
-      };
+    'id': id,
+    'name': name,
+    'emoji': emoji,
+    if (imagePath != null) 'imagePath': imagePath,
+    'items': [for (final item in items) item.toJson()],
+  };
 }

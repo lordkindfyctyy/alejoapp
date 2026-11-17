@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Grabar la voz de la familia para cada pictograma. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Para buscar pictogramas de ARASAAC y mandar los avisos al celular de papá (lo demás anda sin internet) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="AlejoApp"
         android:name="${applicationName}"

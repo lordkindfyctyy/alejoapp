@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
+import 'avisos.dart';
 import 'board_store.dart';
 import 'default_boards.dart';
 import 'edit_mode.dart';
+import 'screens/agenda_view.dart';
+import 'screens/ajustes_screen.dart';
 import 'screens/board_view.dart';
 import 'screens/categories_view.dart';
+import 'screens/feelings_view.dart';
 import 'screens/talking_view.dart';
 import 'sentence.dart';
+import 'widgets/core_words_bar.dart';
 import 'widgets/sentence_bar.dart';
 
 Future<void> main() async {
@@ -16,13 +21,18 @@ Future<void> main() async {
   final dir = await getApplicationDocumentsDirectory();
   final store = BoardStore(dir);
   await store.load();
-  runApp(AlejoApp(store: store));
+  final avisos = Avisos(dir);
+  await avisos.load();
+  runApp(AlejoApp(store: store, avisos: avisos));
 }
 
 class AlejoApp extends StatelessWidget {
-  const AlejoApp({super.key, required this.store, this.sentence});
+  const AlejoApp({super.key, required this.store, this.sentence, this.avisos});
 
   final BoardStore store;
+
+  /// Avisos al celular de papá (los tests pasan uno que no usa internet).
+  final Avisos? avisos;
 
   /// Los tests pasan una que no usa la voz del teléfono.
   final Sentence? sentence;
@@ -32,6 +42,9 @@ class AlejoApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: store),
+        ChangeNotifierProvider.value(
+          value: avisos ?? Avisos(store.root, enviarHttp: (_) async => false),
+        ),
         ChangeNotifierProvider(create: (_) => EditMode()),
         ChangeNotifierProvider(create: (_) => sentence ?? Sentence()),
       ],
@@ -44,6 +57,10 @@ class AlejoApp extends StatelessWidget {
             brightness: Brightness.light,
           ),
           scaffoldBackgroundColor: const Color(0xFFF4F7FB),
+          // con 5 solapas, letra un poco más chica abajo para que "Categorías" entre en un renglón
+          navigationBarTheme: const NavigationBarThemeData(
+            labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+          ),
           appBarTheme: const AppBarTheme(
             backgroundColor: Color(0xFF2E7DD7),
             foregroundColor: Colors.white,
@@ -55,7 +72,7 @@ class AlejoApp extends StatelessWidget {
   }
 }
 
-/// Dos paneles: el tablero de inicio y las categorías.
+/// Paneles: inicio, categorías, cómo me siento, agenda y "yo hablo".
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -76,22 +93,42 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text(
           editing
               ? 'Modo edición'
-              : const ['INICIO', 'CATEGORÍAS', 'YO HABLO'][_tab],
+              : const [
+                  'INICIO',
+                  'CATEGORÍAS',
+                  'ME SIENTO',
+                  'AGENDA',
+                  'YO HABLO',
+                ][_tab],
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
         ),
-        actions: [EditModeButton(mode: context.read<EditMode>())],
+        actions: [
+          if (editing)
+            IconButton(
+              tooltip: 'Ajustes y avisos',
+              icon: const Icon(Icons.settings, size: 30),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AjustesScreen()),
+              ),
+            ),
+          EditModeButton(mode: context.read<EditMode>()),
+        ],
       ),
       body: Column(
         children: [
           // La frase sigue armada al pasar de Inicio a una categoría y volver.
           const SentenceBar(),
-          if (_tab != 2) const EditHint(),
+          if (_tab != 4) const EditHint(),
+          if (_tab <= 1 && !editing) const CoreWordsBar(),
           Expanded(
             child: IndexedStack(
               index: _tab,
               children: const [
                 BoardView(boardId: kHomeBoardId),
                 CategoriesView(),
+                FeelingsView(),
+                AgendaView(),
                 TalkingView(),
               ],
             ),
@@ -112,6 +149,16 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.grid_view_outlined, size: 32),
             selectedIcon: Icon(Icons.grid_view, size: 32),
             label: 'Categorías',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.favorite_outline, size: 32),
+            selectedIcon: Icon(Icons.favorite, size: 32),
+            label: 'Me siento',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.event_note_outlined, size: 32),
+            selectedIcon: Icon(Icons.event_note, size: 32),
+            label: 'Agenda',
           ),
           NavigationDestination(
             icon: Icon(Icons.record_voice_over_outlined, size: 32),

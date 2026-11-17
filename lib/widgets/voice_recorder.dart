@@ -48,16 +48,17 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
     }
     if (!await _recorder.hasPermission()) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Para grabar hay que permitir el uso del micrófono.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Para grabar hay que permitir el uso del micrófono.'),
+          ),
+        );
       }
       return;
     }
     await Speaker.instance.stop();
     final dir = await getTemporaryDirectory();
-    final path =
-        '${dir.path}/voz_${DateTime.now().microsecondsSinceEpoch}.m4a';
+    final path = '${dir.path}/voz_${DateTime.now().microsecondsSinceEpoch}.m4a';
     await _recorder.start(
       const RecordConfig(encoder: AudioEncoder.aacLc, numChannels: 1),
       path: path,
@@ -92,8 +93,8 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
             _recording
                 ? 'Grabando… $_seconds s  (tocá para terminar)'
                 : hasFile
-                    ? 'Grabar de nuevo'
-                    : 'Grabar mi voz',
+                ? 'Grabar de nuevo'
+                : 'Grabar mi voz',
             style: const TextStyle(fontSize: 18),
           ),
         ),

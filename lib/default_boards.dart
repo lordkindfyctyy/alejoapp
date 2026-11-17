@@ -8,83 +8,139 @@ const String kHomeBoardId = 'inicio';
 List<Board> defaultBoards() {
   var n = 0;
   List<Pictogram> items(List<(String, String)> list) => [
-        for (final (emoji, label) in list)
-          Pictogram(id: 'p${n++}', label: label, emoji: emoji),
-      ];
+    for (final (emoji, label) in list)
+      Pictogram(id: 'p${n++}', label: label, emoji: emoji),
+  ];
 
   return [
-    Board(id: kHomeBoardId, name: 'INICIO', emoji: '⭐', items: items([
-      ('🏠', 'CASA'),
-      ('💧', 'AGUA'),
-      ('🍽️', 'COMER'),
+    Board(
+      id: kHomeBoardId,
+      name: 'INICIO',
+      emoji: '⭐',
+      items: items([
+        ('🏠', 'CASA'),
+        ('💧', 'AGUA'),
+        ('🍽️', 'COMER'),
+        ('🚽', 'BAÑO'),
+        ('👍', 'SÍ'),
+        ('👎', 'NO'),
+        ('🙋', 'AYUDA'),
+        ('➕', 'MÁS'),
+        ('✅', 'TERMINÉ'),
+        ('😴', 'DORMIR'),
+      ]),
+    ),
+    Board(
+      id: 'necesidades',
+      name: 'NECESIDADES',
+      emoji: '🙋',
+      items: items([
+        ('🍽️', 'COMER'),
+        ('💧', 'TOMAR AGUA'),
+        ('🚽', 'BAÑO'),
+        ('😴', 'DORMIR'),
+        ('🙋', 'AYUDA'),
+        ('🤕', 'ME DUELE'),
+        ('🥶', 'TENGO FRÍO'),
+        ('🥵', 'TENGO CALOR'),
+      ]),
+    ),
+    Board(
+      id: 'emociones',
+      name: 'EMOCIONES',
+      emoji: '😀',
+      items: items([
+        ('😀', 'FELIZ'),
+        ('😢', 'TRISTE'),
+        ('😠', 'ENOJADO'),
+        ('😨', 'MIEDO'),
+        ('😩', 'CANSADO'),
+        ('😬', 'NERVIOSO'),
+        ('😮', 'SORPRENDIDO'),
+        ('😌', 'TRANQUILO'),
+      ]),
+    ),
+    Board(
+      id: 'personas',
+      name: 'PERSONAS',
+      emoji: '👨‍👩‍👦',
+      items: items([
+        ('👩', 'MAMÁ'),
+        ('👨', 'PAPÁ'),
+        ('🧒', 'YO'),
+        ('👦', 'HERMANO'),
+        ('👵', 'ABUELA'),
+        ('👴', 'ABUELO'),
+        ('🧑‍🏫', 'MAESTRA'),
+        ('🧑‍🤝‍🧑', 'AMIGO'),
+      ]),
+    ),
+    Board(
+      id: 'actividades',
+      name: 'ACTIVIDADES',
+      emoji: '🧸',
+      items: items([
+        ('🧸', 'JUGAR'),
+        ('🖍️', 'DIBUJAR'),
+        ('🎵', 'MÚSICA'),
+        ('📺', 'TELE'),
+        ('📱', 'TABLET'),
+        ('🚶', 'PASEAR'),
+        ('📖', 'LEER'),
+        ('🛁', 'BAÑARME'),
+      ]),
+    ),
+    Board(
+      id: 'lugares',
+      name: 'LUGARES',
+      emoji: '📍',
+      items: items([
+        ('🏠', 'CASA'),
+        ('🏫', 'ESCUELA'),
+        ('🛝', 'PLAZA'),
+        ('🚗', 'AUTO'),
+        ('🛒', 'SUPERMERCADO'),
+        ('🏥', 'DOCTOR'),
+        ('🌳', 'PARQUE'),
+        ('🛏️', 'CAMA'),
+      ]),
+    ),
+    Board(
+      id: 'respuestas',
+      name: 'RESPUESTAS',
+      emoji: '💬',
+      items: items([
+        ('👍', 'SÍ'),
+        ('👎', 'NO'),
+        ('🤷', 'NO SÉ'),
+        ('✋', 'ESPERÁ'),
+        ('🛑', 'BASTA'),
+        ('🔁', 'OTRA VEZ'),
+        ('🙏', 'GRACIAS'),
+        ('👋', 'HOLA'),
+        ('👋', 'CHAU'),
+      ]),
+    ),
+  ];
+}
+
+/// La rutina del día con la que arranca la agenda (se puede cambiar en el modo edición).
+List<Pictogram> defaultRoutine() {
+  var n = 0;
+  return [
+    for (final (emoji, label) in const [
+      ('🛏️', 'LEVANTARSE'),
       ('🚽', 'BAÑO'),
-      ('👍', 'SÍ'),
-      ('👎', 'NO'),
-      ('🙋', 'AYUDA'),
-      ('➕', 'MÁS'),
-      ('✅', 'TERMINÉ'),
-      ('😴', 'DORMIR'),
-    ])),
-    Board(id: 'necesidades', name: 'NECESIDADES', emoji: '🙋', items: items([
-      ('🍽️', 'COMER'),
-      ('💧', 'TOMAR AGUA'),
-      ('🚽', 'BAÑO'),
-      ('😴', 'DORMIR'),
-      ('🙋', 'AYUDA'),
-      ('🤕', 'ME DUELE'),
-      ('🥶', 'TENGO FRÍO'),
-      ('🥵', 'TENGO CALOR'),
-    ])),
-    Board(id: 'emociones', name: 'EMOCIONES', emoji: '😀', items: items([
-      ('😀', 'FELIZ'),
-      ('😢', 'TRISTE'),
-      ('😠', 'ENOJADO'),
-      ('😨', 'MIEDO'),
-      ('😩', 'CANSADO'),
-      ('😬', 'NERVIOSO'),
-      ('😮', 'SORPRENDIDO'),
-      ('😌', 'TRANQUILO'),
-    ])),
-    Board(id: 'personas', name: 'PERSONAS', emoji: '👨‍👩‍👦', items: items([
-      ('👩', 'MAMÁ'),
-      ('👨', 'PAPÁ'),
-      ('🧒', 'YO'),
-      ('👦', 'HERMANO'),
-      ('👵', 'ABUELA'),
-      ('👴', 'ABUELO'),
-      ('🧑‍🏫', 'MAESTRA'),
-      ('🧑‍🤝‍🧑', 'AMIGO'),
-    ])),
-    Board(id: 'actividades', name: 'ACTIVIDADES', emoji: '🧸', items: items([
-      ('🧸', 'JUGAR'),
-      ('🖍️', 'DIBUJAR'),
-      ('🎵', 'MÚSICA'),
-      ('📺', 'TELE'),
-      ('📱', 'TABLET'),
-      ('🚶', 'PASEAR'),
-      ('📖', 'LEER'),
-      ('🛁', 'BAÑARME'),
-    ])),
-    Board(id: 'lugares', name: 'LUGARES', emoji: '📍', items: items([
-      ('🏠', 'CASA'),
+      ('🪥', 'LAVARSE LOS DIENTES'),
+      ('👕', 'VESTIRSE'),
+      ('🥣', 'DESAYUNAR'),
       ('🏫', 'ESCUELA'),
-      ('🛝', 'PLAZA'),
-      ('🚗', 'AUTO'),
-      ('🛒', 'SUPERMERCADO'),
-      ('🏥', 'DOCTOR'),
-      ('🌳', 'PARQUE'),
-      ('🛏️', 'CAMA'),
-    ])),
-    Board(id: 'respuestas', name: 'RESPUESTAS', emoji: '💬', items: items([
-      ('👍', 'SÍ'),
-      ('👎', 'NO'),
-      ('🤷', 'NO SÉ'),
-      ('✋', 'ESPERÁ'),
-      ('🛑', 'BASTA'),
-      ('🔁', 'OTRA VEZ'),
-      ('🙏', 'GRACIAS'),
-      ('👋', 'HOLA'),
-      ('👋', 'CHAU'),
-    ])),
+      ('🍽️', 'ALMORZAR'),
+      ('🧸', 'JUGAR'),
+      ('🛁', 'BAÑARSE'),
+      ('🍲', 'CENAR'),
+      ('😴', 'DORMIR'),
+    ])
+      Pictogram(id: 'r${n++}', label: label, emoji: emoji),
   ];
 }

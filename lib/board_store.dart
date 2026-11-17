@@ -18,6 +18,17 @@ class BoardStore extends ChangeNotifier {
 
   final List<Board> _boards = [];
   TalkingPhoto _talking = TalkingPhoto.initial();
+
+  // ---- Agenda visual ----
+  /// La rutina del día, en orden.
+  final List<Pictogram> rutina = [];
+
+  /// "Primero ... después ..." (null = sin elegir).
+  Pictogram? primero, despues;
+
+  /// Qué pasos de la rutina ya hizo hoy (se reinicia cada día).
+  String _hechosFecha = '';
+  final Set<String> _hechos = {};
   bool _loaded = false;
 
   /// La foto de "Yo hablo" y sus frases.
@@ -44,6 +55,26 @@ class BoardStore extends ChangeNotifier {
         for (final b in data['tableros'] as List) {
           _boards.add(Board.fromJson(Map<String, dynamic>.from(b as Map)));
         }
+        final agenda = data['agenda'];
+        if (agenda is Map) {
+          for (final p in agenda['rutina'] as List? ?? const []) {
+            rutina.add(Pictogram.fromJson(Map<String, dynamic>.from(p as Map)));
+          }
+          if (agenda['primero'] is Map) {
+            primero = Pictogram.fromJson(
+              Map<String, dynamic>.from(agenda['primero'] as Map),
+            );
+          }
+          if (agenda['despues'] is Map) {
+            despues = Pictogram.fromJson(
+              Map<String, dynamic>.from(agenda['despues'] as Map),
+            );
+          }
+          _hechosFecha = agenda['hechosFecha'] as String? ?? '';
+          _hechos.addAll([
+            for (final x in agenda['hechos'] as List? ?? const []) x as String,
+          ]);
+        }
         final talking = data['yoHablo'];
         if (talking is Map) {
           _talking = TalkingPhoto.fromJson(Map<String, dynamic>.from(talking));
@@ -59,6 +90,7 @@ class BoardStore extends ChangeNotifier {
         ..addAll(defaultBoards());
       await _save();
     }
+    if (rutina.isEmpty) rutina.addAll(defaultRoutine());
     await mediaDir.create(recursive: true);
     _loaded = true;
     notifyListeners();
@@ -74,6 +106,13 @@ class BoardStore extends ChangeNotifier {
         'version': 1,
         'tableros': [for (final b in _boards) b.toJson()],
         'yoHablo': _talking.toJson(),
+        'agenda': {
+          'rutina': [for (final p in rutina) p.toJson()],
+          if (primero != null) 'primero': primero!.toJson(),
+          if (despues != null) 'despues': despues!.toJson(),
+          'hechosFecha': _hechosFecha,
+          'hechos': _hechos.toList(),
+        },
       }),
     );
     await tmp.rename(_dataFile.path);
@@ -169,6 +208,81 @@ class BoardStore extends ChangeNotifier {
     await _commit();
   }
 
+  // ---- Agenda visual ----
+
+  static String _hoy() => DateTime.now().toIso8601String().substring(0, 10);
+
+  /// Los pasos de la rutina que ya hizo hoy.
+  Set<String> get hechosHoy =>
+      _hechosFecha == _hoy() ? Set.unmodifiable(_hechos) : const {};
+
+  Future<void> marcarHecho(String id, bool hecho) async {
+    if (_hechosFecha != _hoy()) {
+      _hechos.clear();
+      _hechosFecha = _hoy();
+    }
+    hecho ? _hechos.add(id) : _hechos.remove(id);
+    await _commit();
+  }
+
+  Future<void> reiniciarDia() async {
+    _hechos.clear();
+    _hechosFecha = _hoy();
+    await _commit();
+  }
+
+  /// Suma un paso a la rutina (una copia del pictograma, con su foto y su voz).
+  Future<void> agregarPaso(Pictogram p) async {
+    rutina.add(
+      Pictogram(
+        id: newId(),
+        label: p.label,
+        emoji: p.emoji,
+        imagePath: p.imagePath,
+        audioPath: p.audioPath,
+      ),
+    );
+    await _commit();
+  }
+
+  Future<void> borrarPaso(String id) async {
+    rutina.removeWhere((p) => p.id == id);
+    await _commit();
+  }
+
+  Future<void> moverPaso(int desde, int hasta) async {
+    if (desde == hasta || desde < 0 || desde >= rutina.length) return;
+    final p = rutina.removeAt(desde);
+    rutina.insert(hasta.clamp(0, rutina.length), p);
+    await _commit();
+  }
+
+  Future<void> elegirPrimeroDespues({
+    Pictogram? primero,
+    Pictogram? despues,
+  }) async {
+    Pictogram copia(Pictogram p) => Pictogram(
+      id: newId(),
+      label: p.label,
+      emoji: p.emoji,
+      imagePath: p.imagePath,
+      audioPath: p.audioPath,
+    );
+    if (primero != null) this.primero = copia(primero);
+    if (despues != null) this.despues = copia(despues);
+    await _commit();
+  }
+
+  /// Todos los pictogramas de todos los tableros (para elegir pasos de la agenda), sin repetir palabras.
+  List<Pictogram> todosLosPictogramas() {
+    final vistos = <String>{};
+    return [
+      for (final b in _boards)
+        for (final p in b.items)
+          if (vistos.add(p.label)) p,
+    ];
+  }
+
   // ---- Yo hablo ----
 
   /// Cambia la foto o dónde está la boca; borra la foto anterior.
@@ -213,6 +327,10 @@ class BoardStore extends ChangeNotifier {
       if (_talking.imagePath != null) _talking.imagePath!,
       for (final p in _talking.phrases)
         if (p.audioPath != null) p.audioPath!,
+      for (final p in [...rutina, ?primero, ?despues]) ...[
+        if (p.imagePath != null) p.imagePath!,
+        if (p.audioPath != null) p.audioPath!,
+      ],
       for (final b in _boards) ...[
         if (b.imagePath != null) b.imagePath!,
         for (final p in b.items) ...[

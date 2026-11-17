@@ -4,7 +4,11 @@ import 'models.dart';
 import 'speaker.dart';
 
 /// Cómo se dice algo en voz alta (Speaker.say; los tests pasan otra).
-typedef SayFn = Future<void> Function(String text, {String? audioFile, bool wait});
+typedef SayFn = Future<void> Function(
+  String text, {
+  String? audioFile,
+  bool wait,
+});
 
 /// Una palabra de la frase: una copia del pictograma tal como estaba al
 /// tocarlo (si después se edita o se borra, la frase no se rompe).
@@ -47,12 +51,14 @@ class Sentence extends ChangeNotifier {
 
   void add(Pictogram picto, {String? imageFile, String? audioFile}) {
     if (_words.length >= maxWords) return;
-    _words.add(SentenceWord(
-      label: picto.label,
-      emoji: picto.emoji,
-      imageFile: imageFile,
-      audioFile: audioFile,
-    ));
+    _words.add(
+      SentenceWord(
+        label: picto.label,
+        emoji: picto.emoji,
+        imageFile: imageFile,
+        audioFile: audioFile,
+      ),
+    );
     notifyListeners();
   }
 

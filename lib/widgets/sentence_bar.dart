@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../avisos.dart';
 import '../sentence.dart';
 import '../speaker.dart';
 
@@ -64,12 +65,18 @@ class _SentenceBarState extends State<SentenceBar> {
               child: words.isEmpty
                   ? Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'Tocá los dibujos para armar una frase',
-                        style: TextStyle(
-                          color: scheme.outline,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                      // con la letra grande del teléfono se achica en vez de cortarse
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Tocá los dibujos
+para armar una frase',
+                          style: TextStyle(
+                            color: scheme.outline,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     )
@@ -106,7 +113,15 @@ class _SentenceBarState extends State<SentenceBar> {
                     shape: const CircleBorder(),
                     padding: EdgeInsets.zero,
                   ),
-                  onPressed: words.isEmpty ? null : sentence.speak,
+                  onPressed: words.isEmpty
+                      ? null
+                      : () {
+                          context.read<Avisos>().decir(
+                            sentence.text,
+                            esFrase: true,
+                          );
+                          sentence.speak();
+                        },
                   child: const Icon(
                     Icons.play_arrow_rounded,
                     size: 48,
@@ -139,10 +154,14 @@ class _WordChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         width: 72,
         decoration: BoxDecoration(
-          color: highlighted ? const Color(0xFFFFE08A) : scheme.surfaceContainerLowest,
+          color: highlighted
+              ? const Color(0xFFFFE08A)
+              : scheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: highlighted ? const Color(0xFFE0A800) : scheme.outlineVariant,
+            color: highlighted
+                ? const Color(0xFFE0A800)
+                : scheme.outlineVariant,
             width: highlighted ? 3 : 1.5,
           ),
         ),
@@ -153,7 +172,11 @@ class _WordChip extends StatelessWidget {
               child: image != null && File(image).existsSync()
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.file(File(image), fit: BoxFit.cover, width: double.infinity),
+                      child: Image.file(
+                        File(image),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
                     )
                   : Center(
                       child: Text(
@@ -189,9 +212,9 @@ class _RoundButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-        iconSize: 30,
-        tooltip: tooltip,
-        onPressed: onPressed,
-        icon: Icon(icon),
-      );
+    iconSize: 30,
+    tooltip: tooltip,
+    onPressed: onPressed,
+    icon: Icon(icon),
+  );
 }

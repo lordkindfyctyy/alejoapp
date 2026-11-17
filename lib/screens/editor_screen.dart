@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../arasaac.dart';
 import '../board_store.dart';
 import '../models.dart';
 import '../speaker.dart';
@@ -15,21 +16,22 @@ import '../widgets/voice_recorder.dart';
 class UpperCaseFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-          TextEditingValue oldValue, TextEditingValue newValue) =>
-      newValue.copyWith(text: newValue.text.toUpperCase());
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) => newValue.copyWith(text: newValue.text.toUpperCase());
 }
 
 /// Crea o edita un pictograma ([boardId] + [picto]) o una categoría
 /// ([category]). Las categorías no llevan voz grabada.
 class EditorScreen extends StatefulWidget {
   const EditorScreen.pictogram({super.key, required this.boardId, this.picto})
-      : category = null,
-        isCategory = false;
+    : category = null,
+      isCategory = false;
 
   const EditorScreen.category({super.key, this.category})
-      : boardId = null,
-        picto = null,
-        isCategory = true;
+    : boardId = null,
+      picto = null,
+      isCategory = true;
 
   final String? boardId;
   final Pictogram? picto;
@@ -54,19 +56,21 @@ class _EditorScreenState extends State<EditorScreen> {
   bool _removeAudio = false;
   bool _saving = false;
 
-  bool get _isNew => widget.isCategory
-      ? widget.category == null
-      : widget.picto == null;
+  bool get _isNew =>
+      widget.isCategory ? widget.category == null : widget.picto == null;
 
   @override
   void initState() {
     super.initState();
     _label = TextEditingController(
-        text: widget.isCategory ? widget.category?.name : widget.picto?.label);
+      text: widget.isCategory ? widget.category?.name : widget.picto?.label,
+    );
     _emoji = TextEditingController(
-        text: widget.isCategory ? widget.category?.emoji : widget.picto?.emoji);
-    _savedImage =
-        widget.isCategory ? widget.category?.imagePath : widget.picto?.imagePath;
+      text: widget.isCategory ? widget.category?.emoji : widget.picto?.emoji,
+    );
+    _savedImage = widget.isCategory
+        ? widget.category?.imagePath
+        : widget.picto?.imagePath;
     _savedAudio = widget.picto?.audioPath;
   }
 
@@ -102,9 +106,8 @@ class _EditorScreenState extends State<EditorScreen> {
   Future<void> _save() async {
     final label = _label.text.trim().toUpperCase();
     if (label.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Escribí la palabra.')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Escribí la palabra.')));
       return;
     }
     setState(() => _saving = true);
@@ -113,18 +116,22 @@ class _EditorScreenState extends State<EditorScreen> {
     var image = _removeImage ? null : _savedImage;
     if (_newImage != null) image = await store.importMedia(_newImage!, 'jpg');
     var audio = _removeAudio ? null : _savedAudio;
-    if (_newAudio != null) audio = await store.importMedia(File(_newAudio!), 'm4a');
+    if (_newAudio != null) {
+      audio = await store.importMedia(File(_newAudio!), 'm4a');
+    }
 
     final emoji = _emoji.text.trim();
     if (widget.isCategory) {
       final old = widget.category;
-      await store.saveCategory(Board(
-        id: old?.id ?? store.newId(),
-        name: label,
-        emoji: emoji,
-        imagePath: image,
-        items: old?.items,
-      ));
+      await store.saveCategory(
+        Board(
+          id: old?.id ?? store.newId(),
+          name: label,
+          emoji: emoji,
+          imagePath: image,
+          items: old?.items,
+        ),
+      );
     } else {
       await store.savePictogram(
         widget.boardId!,
@@ -235,6 +242,25 @@ class _EditorScreenState extends State<EditorScreen> {
                   onPressed: _pickPhoto,
                   icon: const Icon(Icons.add_photo_alternate),
                   label: Text(image == null ? 'Poner foto' : 'Cambiar foto'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: () async {
+                    final f = await elegirPictogramaArasaac(
+                      context,
+                      _label.text,
+                    );
+                    if (f != null) {
+                      setState(() {
+                        _newImage = f;
+                        _removeImage = false;
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.image_search),
+                  label: const Text('Pictograma'),
                 ),
               ),
               if (image != null) ...[
