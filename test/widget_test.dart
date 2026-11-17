@@ -112,7 +112,7 @@ void main() {
       );
       expect(find.text('Agregar'), findsOneWidget);
 
-      await tester.tap(find.text('Categorías'));
+      await tester.tap(find.text('Temas'));
       await tester.pumpAndSettle();
       expect(find.text('EMOCIONES'), findsOneWidget);
       expect(tester.takeException(), isNull);

@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? 'Modo edición'
               : const [
                   'INICIO',
-                  'CATEGORÍAS',
+                  'TEMAS',
                   'ME SIENTO',
                   'AGENDA',
                   'YO HABLO',
@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.grid_view_outlined, size: 32),
             selectedIcon: Icon(Icons.grid_view, size: 32),
-            label: 'Categorías',
+            label: 'Temas',
           ),
           NavigationDestination(
             icon: Icon(Icons.favorite_outline, size: 32),
