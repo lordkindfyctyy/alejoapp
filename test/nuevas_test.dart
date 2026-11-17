@@ -26,7 +26,9 @@ void main() {
     expect(avisos.tema, startsWith('alejo-'));
     await avisos.decir('PAPÁ, VENÍ', urgente: true);
     expect(enviados, isEmpty); // apagados
-    await avisos.configurar(activo: true);
+    // por defecto también avisa cada frase; acá se prueba con eso apagado
+    expect(avisos.cadaFrase, isTrue);
+    await avisos.configurar(activo: true, cadaFrase: false);
     await avisos.decir('ME DUELE MUCHO LA PANZA', urgente: true);
     await avisos.decir(
       'YO QUIERO AGUA',

@@ -208,6 +208,90 @@ class BoardStore extends ChangeNotifier {
     await _commit();
   }
 
+  // ---- Pasar los botones a otro teléfono (papá ↔ Alejo) ----
+
+  /// Todos los tableros, la agenda y "Yo hablo" con sus fotos y grabaciones, comprimidos en un solo archivo.
+  Future<File> exportarPaquete() async {
+    await _save();
+    final medios = <String, String>{};
+    if (await mediaDir.exists()) {
+      await for (final f in mediaDir.list()) {
+        if (f is File) {
+          medios[f.uri.pathSegments.last] = base64Encode(await f.readAsBytes());
+        }
+      }
+    }
+    final datos = utf8.encode(
+      jsonEncode({
+        'version': 1,
+        'tableros': await _dataFile.readAsString(),
+        'medios': medios,
+      }),
+    );
+    final f = File('${root.path}/paquete_botones.json.gz');
+    await f.writeAsBytes(gzip.encode(datos), flush: true);
+    return f;
+  }
+
+  /// Reemplaza todos los tableros por los del paquete (con sus fotos y grabaciones).
+  Future<void> importarPaquete(File paquete) async {
+    final d = jsonDecode(
+      utf8.decode(gzip.decode(await paquete.readAsBytes())),
+    ) as Map;
+    await mediaDir.create(recursive: true);
+    final medios = Map<String, String>.from(d['medios'] as Map? ?? const {});
+    for (final e in medios.entries) {
+      // solo nombres de archivo simples (que un paquete no pueda escribir fuera de la carpeta de medios)
+      if (e.key.contains('/') || e.key.contains(r'\') || e.key.contains('..')) {
+        continue;
+      }
+      await File('${mediaDir.path}/${e.key}')
+          .writeAsBytes(base64Decode(e.value));
+    }
+    final hechosFecha = _hechosFecha;
+    final hechos = Set.of(_hechos);
+    await _dataFile.writeAsString(d['tableros'] as String);
+    rutina.clear();
+    primero = null;
+    despues = null;
+    await load();
+    // lo que ya hizo hoy no se pierde por recibir botones nuevos
+    if (hechosFecha == _hoy()) {
+      _hechosFecha = hechosFecha;
+      _hechos.addAll(hechos);
+    }
+    await _commit();
+  }
+
+  /// Las palabras de una frase con su pictograma de este teléfono (si lo hay), para mostrarlas con dibujos.
+  List<(String, Pictogram?)> pictosDeFrase(String frase) {
+    final todos = {for (final p in todosLosPictogramas()) p.label: p};
+    final palabras = frase
+        .toUpperCase()
+        .replaceAll(',', '')
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    final out = <(String, Pictogram?)>[];
+    var i = 0;
+    while (i < palabras.length) {
+      var hecho = false;
+      for (var n = palabras.length - i; n > 0 && !hecho; n--) {
+        final trozo = palabras.sublist(i, i + n).join(' ');
+        if (todos.containsKey(trozo)) {
+          out.add((trozo, todos[trozo]));
+          i += n;
+          hecho = true;
+        }
+      }
+      if (!hecho) {
+        out.add((palabras[i], null));
+        i++;
+      }
+    }
+    return out;
+  }
+
   // ---- Agenda visual ----
 
   static String _hoy() => DateTime.now().toIso8601String().substring(0, 10);

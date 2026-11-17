@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../arasaac.dart';
 import '../avisos.dart';
 import '../board_store.dart';
+import '../conexion.dart';
 import '../models.dart';
 
 /// Ajustes (solo en el modo edición): avisos al celular de papá, registro de lo que dijo Alejo y pictogramas ARASAAC.
@@ -89,6 +90,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          const _Conexion(),
+          const Divider(height: 36),
           const Text(
             '📣 Avisos al celular',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
@@ -285,5 +288,140 @@ class _AjustesScreenState extends State<AjustesScreen> {
     if (d == null) return '';
     String dos(int n) => n.toString().padLeft(2, '0');
     return '${dos(d.day)}/${dos(d.month)} ${dos(d.hour)}:${dos(d.minute)}';
+  }
+}
+
+/// De quién es este teléfono (Alejo o papá) y, en el de papá, el código del teléfono de Alejo.
+class _Conexion extends StatefulWidget {
+  const _Conexion();
+  @override
+  State<_Conexion> createState() => _ConexionState();
+}
+
+class _ConexionState extends State<_Conexion> {
+  final _codigo = TextEditingController();
+
+  @override
+  void dispose() {
+    _codigo.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final conexion = context.watch<Conexion>();
+    final avisos = context.watch<Avisos>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '📱 Conexión entre teléfonos',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'La misma app en el teléfono de Alejo y en el de papá: Alejo te manda frases y avisos, vos le contestás con '
+          'dibujos o con tu voz, y podés traer y mandarle sus botones.',
+        ),
+        const SizedBox(height: 8),
+        SegmentedButton<String>(
+          segments: [
+            ButtonSegment(
+              value: 'alejo',
+              label: Text('De ${avisos.nombre}'),
+              icon: const Icon(Icons.child_care),
+            ),
+            ButtonSegment(
+              value: 'papa',
+              label: Text('De ${avisos.cuidador}'),
+              icon: const Icon(Icons.person),
+            ),
+          ],
+          selected: {conexion.rol},
+          onSelectionChanged: (v) async {
+            if (v.first == 'alejo') {
+              await conexion.elegirRol('alejo');
+            } else {
+              setState(() {}); // muestra el campo del código
+              if (_codigo.text.trim().startsWith('alejo-')) {
+                await conexion.elegirRol('papa', codigo: _codigo.text);
+              } else {
+                await conexion.elegirRol('papa');
+              }
+            }
+          },
+        ),
+        const SizedBox(height: 10),
+        if (!conexion.esPapa) ...[
+          Text(
+            'Este es el teléfono de ${avisos.nombre}. Su código es:',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          SelectableText(
+            avisos.tema,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+          ),
+          Text(
+            'En el teléfono de ${avisos.cuidador}: instalá AlejoApp, entrá a ⚙️, elegí "De ${avisos.cuidador}" y escribí este código. '
+            'Para que lleguen las frases, los avisos tienen que estar activados (abajo).',
+            style: const TextStyle(fontSize: 13),
+          ),
+        ] else ...[
+          const Text(
+            'Este es el teléfono de papá. Escribí el código que aparece en el teléfono de Alejo (⚙️ → Conexión):',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _codigo,
+                  decoration: InputDecoration(
+                    hintText: avisos.tema.isEmpty ? 'alejo-…' : avisos.tema,
+                  ),
+                  autocorrect: false,
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: () async {
+                  final c = _codigo.text.trim().toLowerCase();
+                  if (!c.startsWith('alejo-') || c.length < 12) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'El código empieza con "alejo-" y es largo: copialo tal cual.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                  await conexion.elegirRol('papa', codigo: c);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Conectando… Andá a la solapa Charla.'),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Conectar'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            conexion.conectado
+                ? '🟢 Conectado al código ${avisos.tema}'
+                : '🔴 Todavía sin conexión',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const Text(
+            'Para que te avise aunque tengas el teléfono guardado, suscribite a ese mismo código en la app ntfy (ver abajo).',
+            style: TextStyle(fontSize: 13),
+          ),
+        ],
+      ],
+    );
   }
 }

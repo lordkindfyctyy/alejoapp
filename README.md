@@ -21,6 +21,11 @@ cualquier familia que lo necesite).
 - **Avisos al celular de papá** con [ntfy](https://ntfy.sh) (gratis, sin cuenta): cuando pide ayuda, dice que le
   duele algo o toca VENÍ (y, si se quiere, cada frase). Se configura en el modo edición → ⚙️; papá instala la app
   ntfy y se suscribe al canal que muestra la app. Registro de lo que dijo, guardado solo en el teléfono.
+- **Conexión entre teléfonos** (la misma app en el de Alejo y en el de papá, con un código): Alejo le manda frases y
+  avisos a papá; papá le contesta con dibujos o con **mensajes de voz** (en el teléfono de Alejo aparecen en grande y se
+  dicen en voz alta); papá ve todo en la solapa **Charla** y puede **traer los botones de Alejo, cambiarlos y
+  mandárselos**. Va por ntfy (mientras la app está abierta llega al instante; si estaba cerrada, al abrirla recupera
+  lo de las últimas horas).
 - Funciona sin internet y sin cuentas: todo queda guardado en el teléfono (solo los pictogramas ARASAAC y los avisos
   usan internet).
 

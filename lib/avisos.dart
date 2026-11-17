@@ -25,7 +25,7 @@ class Avisos extends ChangeNotifier {
   String cuidador = 'PAPÁ';
 
   /// Si también se avisa cada frase que dice con ▶ (no solo los pedidos de ayuda, el dolor y "vení").
-  bool cadaFrase = false;
+  bool cadaFrase = true;
 
   /// Resultado del último envío (para mostrarlo en pantalla).
   String? ultimoEstado;
@@ -47,7 +47,7 @@ class Avisos extends ChangeNotifier {
         tema = d['tema'] as String? ?? '';
         nombre = d['nombre'] as String? ?? nombre;
         cuidador = d['cuidador'] as String? ?? cuidador;
-        cadaFrase = d['cadaFrase'] == true;
+        cadaFrase = d['cadaFrase'] != false;
         for (final r in d['registro'] as List? ?? const []) {
           registro.add(Map<String, String>.from(r as Map));
         }
@@ -83,7 +83,9 @@ class Avisos extends ChangeNotifier {
     String? cuidador,
     bool? cadaFrase,
     bool temaNuevoAhora = false,
+    String? tema,
   }) async {
+    if (tema != null && tema.isNotEmpty) this.tema = tema;
     if (activo != null) this.activo = activo;
     if (nombre != null && nombre.trim().isNotEmpty) {
       this.nombre = nombre.trim().toUpperCase();
@@ -124,7 +126,7 @@ class Avisos extends ChangeNotifier {
       'title': '$nombre dice',
       'message': frase,
       'priority': urgente ? 5 : 3,
-      'tags': [urgente ? 'rotating_light' : 'speech_balloon'],
+      'tags': [urgente ? 'rotating_light' : 'speech_balloon', 'frase'],
     };
     bool ok;
     try {

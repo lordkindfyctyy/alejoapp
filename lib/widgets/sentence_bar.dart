@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../avisos.dart';
+import '../conexion.dart';
 import '../sentence.dart';
 import '../speaker.dart';
 
@@ -115,10 +116,25 @@ class _SentenceBarState extends State<SentenceBar> {
                   onPressed: words.isEmpty
                       ? null
                       : () {
-                          context.read<Avisos>().decir(
-                            sentence.text,
-                            esFrase: true,
-                          );
+                          // en el teléfono de papá, ▶ se la manda a Alejo; en el de Alejo, avisa a papá
+                          final conexion = context.read<Conexion>();
+                          final avisos = context.read<Avisos>();
+                          final messenger = ScaffoldMessenger.of(context);
+                          if (conexion.esPapa) {
+                            conexion.mandarFrase(sentence.text).then((ok) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    ok
+                                        ? 'Mandado a ${avisos.nombre}'
+                                        : 'No se pudo mandar (¿hay internet?)',
+                                  ),
+                                ),
+                              );
+                            });
+                          } else {
+                            avisos.decir(sentence.text, esFrase: true);
+                          }
                           sentence.speak();
                         },
                   child: const Icon(
