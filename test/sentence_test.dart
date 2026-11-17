@@ -91,7 +91,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Tocá los dibujos para armar una frase'), findsOneWidget);
+    expect(find.text('Tocá los dibujos
+para armar una frase'), findsOneWidget);
 
     final first = store.home.items[0].label;
     final second = store.home.items[1].label;
@@ -112,7 +113,8 @@ void main() {
 
     await tester.tap(find.byTooltip('Borrar la frase'));
     await tester.pumpAndSettle();
-    expect(find.text('Tocá los dibujos para armar una frase'), findsOneWidget);
+    expect(find.text('Tocá los dibujos
+para armar una frase'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
