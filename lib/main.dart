@@ -16,6 +16,7 @@ import 'screens/feelings_view.dart';
 import 'screens/talking_view.dart';
 import 'sentence.dart';
 import 'widgets/core_words_bar.dart';
+import 'widgets/lugares_nfc.dart';
 import 'widgets/receptor.dart';
 import 'widgets/sentence_bar.dart';
 
@@ -199,58 +200,60 @@ class _HomeScreenState extends State<HomeScreen> {
     final solapas = esPapa ? _dePapa : _deAlejo;
     final tab = _tab.clamp(0, solapas.length - 1);
     final s = solapas[tab];
-    return Receptor(
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 64,
-          backgroundColor: editing
-              ? const Color(0xFFE07A00)
-              : (esPapa ? const Color(0xFF5B5FC7) : null),
-          title: Text(
-            editing
-                ? 'Modo edición'
-                : (esPapa ? '${s.titulo} · PAPÁ' : s.titulo),
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+    return LugaresNfc(
+      child: Receptor(
+        child: Scaffold(
+          appBar: AppBar(
+            toolbarHeight: 64,
+            backgroundColor: editing
+                ? const Color(0xFFE07A00)
+                : (esPapa ? const Color(0xFF5B5FC7) : null),
+            title: Text(
+              editing
+                  ? 'Modo edición'
+                  : (esPapa ? '${s.titulo} · PAPÁ' : s.titulo),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+            ),
+            actions: [
+              if (editing)
+                IconButton(
+                  tooltip: 'Ajustes y avisos',
+                  icon: const Icon(Icons.settings, size: 30),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AjustesScreen()),
+                  ),
+                ),
+              EditModeButton(mode: context.read<EditMode>()),
+            ],
           ),
-          actions: [
-            if (editing)
-              IconButton(
-                tooltip: 'Ajustes y avisos',
-                icon: const Icon(Icons.settings, size: 30),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AjustesScreen()),
+          body: Column(
+            children: [
+              // La frase sigue armada al pasar de una solapa a otra.
+              const SentenceBar(),
+              if (s.conAyuda) const EditHint(),
+              if (s.conPalabras && !editing) const CoreWordsBar(),
+              Expanded(
+                child: IndexedStack(
+                  index: tab,
+                  children: [for (final x in solapas) x.pantalla],
                 ),
               ),
-            EditModeButton(mode: context.read<EditMode>()),
-          ],
-        ),
-        body: Column(
-          children: [
-            // La frase sigue armada al pasar de una solapa a otra.
-            const SentenceBar(),
-            if (s.conAyuda) const EditHint(),
-            if (s.conPalabras && !editing) const CoreWordsBar(),
-            Expanded(
-              child: IndexedStack(
-                index: tab,
-                children: [for (final x in solapas) x.pantalla],
-              ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: tab,
-          height: 72,
-          onDestinationSelected: (i) => setState(() => _tab = i),
-          destinations: [
-            for (final x in solapas)
-              NavigationDestination(
-                icon: Icon(x.icono, size: 32),
-                selectedIcon: Icon(x.iconoActivo, size: 32),
-                label: x.etiqueta,
-              ),
-          ],
+            ],
+          ),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: tab,
+            height: 72,
+            onDestinationSelected: (i) => setState(() => _tab = i),
+            destinations: [
+              for (final x in solapas)
+                NavigationDestination(
+                  icon: Icon(x.icono, size: 32),
+                  selectedIcon: Icon(x.iconoActivo, size: 32),
+                  label: x.etiqueta,
+                ),
+            ],
+          ),
         ),
       ),
     );

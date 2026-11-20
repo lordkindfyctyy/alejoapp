@@ -3,6 +3,9 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <!-- Para buscar pictogramas de ARASAAC y mandar los avisos al celular de papá (lo demás anda sin internet) -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Stickers NFC de la casa (heladera, baño, cama...): leerlos y grabarlos. No es obligatorio tener NFC. -->
+    <uses-permission android:name="android.permission.NFC"/>
+    <uses-feature android:name="android.hardware.nfc" android:required="false"/>
     <application
         android:label="AlejoApp"
         android:name="${applicationName}"
@@ -27,6 +30,12 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Un sticker NFC grabado con alejoapp://picto/... abre la app en ese pictograma (MainActivity.kt). -->
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="alejoapp" android:host="picto"/>
             </intent-filter>
         </activity>
         <!-- Pantalla para recortar y ajustar las fotos (image_cropper). -->

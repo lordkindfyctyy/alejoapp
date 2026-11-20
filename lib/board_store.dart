@@ -357,6 +357,23 @@ class BoardStore extends ChangeNotifier {
     await _commit();
   }
 
+  /// El pictograma de un sticker NFC: por su id y, si ya no está (se borró o vino de otro teléfono), por el nombre.
+  Pictogram? pictogramaDeSticker(String id, String nombre) {
+    for (final b in _boards) {
+      for (final p in b.items) {
+        if (p.id == id) return p;
+      }
+    }
+    final buscado = nombre.trim().toUpperCase();
+    if (buscado.isEmpty) return null;
+    for (final b in _boards) {
+      for (final p in b.items) {
+        if (p.label.trim().toUpperCase() == buscado) return p;
+      }
+    }
+    return null;
+  }
+
   /// Todos los pictogramas de todos los tableros (para elegir pasos de la agenda), sin repetir palabras.
   List<Pictogram> todosLosPictogramas() {
     final vistos = <String>{};

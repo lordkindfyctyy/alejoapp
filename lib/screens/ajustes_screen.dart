@@ -7,6 +7,7 @@ import '../avisos.dart';
 import '../board_store.dart';
 import '../conexion.dart';
 import '../models.dart';
+import '../widgets/stickers_nfc_ajustes.dart';
 
 /// Ajustes (solo en el modo edición): avisos al celular de papá, registro de lo que dijo Alejo y pictogramas ARASAAC.
 class AjustesScreen extends StatefulWidget {
@@ -246,6 +247,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
               ),
               subtitle: Text(_fecha(r['t'])),
             ),
+          const Divider(height: 36),
+          const StickersNfcAjustes(),
           const Divider(height: 36),
           const Text(
             '🖼️ Pictogramas ARASAAC',
