@@ -23,7 +23,7 @@ import io.flutter.plugin.common.MethodChannel
  * Canal "alejoapp/nfc" (lib/stickers_nfc.dart):
  *   estado -> "sin" (no tiene NFC), "apagado" o "listo"
  *   linkInicial -> el link del sticker que abrió la app (una sola vez) o null
- *   grabar(uri) -> espera un sticker hasta 30 s y lo graba; devuelve "ok" o el problema
+ *   grabar(uri) -> espera un sticker hasta 60 s y lo graba; devuelve "ok" o el problema
  *   cancelar
  * y la app recibe "abrir"(uri) cuando tocan un sticker con la app abierta.
  */
@@ -99,13 +99,14 @@ class MainActivity : FlutterActivity() {
         val mensaje = NdefMessage(
             arrayOf(NdefRecord.createUri(uri), NdefRecord.createApplicationRecord(packageName))
         )
+        // Sin FLAG_READER_SKIP_NDEF_CHECK: con ese flag Android no revisa si el sticker es NDEF, Ndef.get()
+        // devuelve null y parecía que ningún sticker servía.
         val tipos = NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or
-            NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or
-            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK
+            NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V
         nfc.enableReaderMode(this, { tag -> escribir(tag, mensaje) }, tipos, null)
         principal.postDelayed({
             if (estaVuelta == vuelta) terminar("No se acercó ningún sticker. Probá de nuevo.")
-        }, 30000)
+        }, 60000)
     }
 
     // Corre en otro hilo (el del lector NFC)

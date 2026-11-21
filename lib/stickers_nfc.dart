@@ -45,7 +45,7 @@ class StickersNfc {
     }
   }
 
-  /// Espera hasta 30 s a que acerquen un sticker y le graba el pictograma. Devuelve 'ok' o qué pasó.
+  /// Espera hasta 60 s a que acerquen un sticker y le graba el pictograma. Devuelve 'ok' o qué pasó.
   Future<String> grabar(Pictogram picto) async {
     try {
       return await _canal.invokeMethod<String>('grabar', {

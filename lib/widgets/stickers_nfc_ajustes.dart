@@ -158,7 +158,8 @@ class _ElegirPictoState extends State<_ElegirPicto> {
       title: const Text('¿Qué dice el sticker?'),
       content: SizedBox(
         width: 420,
-        height: 460,
+        // que entre en la pantalla y deje ver el botón Cancelar
+        height: MediaQuery.sizeOf(context).height * 0.5,
         child: Column(
           children: [
             TextField(
